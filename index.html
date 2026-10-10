@@ -3073,7 +3073,7 @@ function normalizarNumerosDados_(d){
   if(d.sessaoCaixa && typeof d.sessaoCaixa === 'object' && 'fundoCaixa' in d.sessaoCaixa && typeof d.sessaoCaixa.fundoCaixa !== 'number') d.sessaoCaixa.fundoCaixa = numPlanilha_(d.sessaoCaixa.fundoCaixa);
   return d;
 }
-function apiConfigurada(){ return API_URL && API_URL.indexOf('http') === 0; }
+function apiConfigurada(){ return (API_URL && API_URL.indexOf('http') === 0) || (USAR_SUPABASE_ && SUPABASE_URL_.indexOf('http') === 0); } // TEMPORÁRIO (Churros): libera com só o Supabase até a planilha principal ser publicada. Voltar ao original depois: return API_URL && API_URL.indexOf('http') === 0;
 function dataLocalISO(date){ const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
 function parseDataBR(str){
   if(!str) return null;
