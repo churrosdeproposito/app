@@ -1831,8 +1831,7 @@ body:has(.cd-fab-carrinho.show) .balao-ia{bottom:84px;}
 
   <section class="tab" id="tab-admininicio">
     <div class="admin-subnav" data-admin-nav="1"></div>
-    <p class="sub" id="adminInicioDica" style="text-align:center;margin-top:18px;">Escolha um grupo acima.</p>
-  </section>
+      </section>
   <section class="tab" id="tab-visaogeral">
     <div class="admin-subnav" data-admin-nav="1"></div>
     <div class="card" id="saudeCard" style="display:none;">
@@ -4143,11 +4142,13 @@ function montarBarrasAdmin_(alvo, grupoIdx){
   const abas = grupos.length>1 ? grupos.map((g,i)=>`<button class="admin-gbtn${g===ativo?' active':''}" onclick="abrirAdminGrupo_(${i})">${g.nome}</button>`).join('') : '';
   const subs = ativo ? (`<div class="admin-grupo">${grupos.length>1 ? ativo.nome : (ativo.nome+' — o que você pode tratar aqui')}</div>` + ativo.subs.map(id=>`<button data-sub="${id}" class="${id===alvo?'active':''}" onclick="abrirAdministrador('${id}')">${ADMIN_SUBABAS_ROTULOS[id]}</button>`).join('')) : '';
   document.querySelectorAll('.admin-subnav[data-admin-nav]').forEach(nav=>{ nav.innerHTML = abas + subs; });
-  const dica = document.getElementById('adminInicioDica');
-  if(dica) dica.textContent = ativo ? 'Escolha uma tela acima.' : 'Escolha um grupo acima.';
+  _adminGrupoAberto_ = (ativo && grupos.length>1) ? grupos.indexOf(ativo) : null;
 }
 /* Entrar no Admin: só os grupos, nenhuma tela aberta. Tocar num grupo mostra as telas dele; a tela abre só quando você toca nela. */
+/* Tocar de novo no grupo que já está aberto fecha as telas dele (volta só para os grupos). */
+let _adminGrupoAberto_ = null;
 function abrirAdminGrupo_(i){
+  if(i != null && i === _adminGrupoAberto_) i = null;
   montarBarrasAdmin_(null, i);
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const bt = document.querySelector('[data-tab="administrador"]'); if(bt) bt.classList.add('active');
@@ -7357,7 +7358,7 @@ const QR_ = (function(){
    O pedido do cliente SEMPRE passa por aceite (Admin/Operador) antes de ir ao preparo.
    ============================================================ */
 const WHATSAPP_DO_RESTAURANTE_ = '5516997146056'; // WhatsApp do restaurante: 55 + DDD + número, sem espaços
-const QR_BASE_URL_ = 'https://COLE-AQUI-O-ENDERECO-DO-SITE/';
+const QR_BASE_URL_ = 'https://churrosdeproposito.github.io/app/';
 let _qrMesas = [];
 function qrLinkMesa_(m){ return QR_BASE_URL_ + '?m=' + encodeURIComponent(m.numero) + '&k=' + encodeURIComponent(m.codigo); }
 function qrMesaSelecionada_(){ const id = (document.getElementById('qrMesaSel')||{}).value; return _qrMesas.find(m=>m.id===id) || _qrMesas[0]; }
