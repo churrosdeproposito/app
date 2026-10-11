@@ -1,4 +1,4 @@
-/* Churros de Propósito — service worker v7: avisos com o app fechado (push da equipe e do cliente) + notificações + abertura instantânea + casca/ícones/logo guardados.
+/* Churros de Propósito — service worker v8: avisos com o app fechado (push da equipe e do cliente) + notificações + abertura instantânea + casca/ícones/logo guardados.
    Precisa ficar na MESMA pasta do HTML, em endereço https.
    - Página: mostra a cópia guardada NA HORA e confere a rede em segundo plano. Se a página mudou, avisa o app ("Nova versão disponível").
    - Ícones, logo e manifest: guardados (cache primeiro).
@@ -6,7 +6,7 @@
    - BACKEND: NADA de Apps Script (script.google.com) nem de Supabase (*.supabase.co) é guardado aqui.
      Dados, pedidos, login e RPCs nunca passam pelo cache do service worker — sempre vão direto para a rede.
    - O único cache de dados é o de fotos (FOTOS) e o da casca/ícones (SHELL/ASSETS). Não adicionar outros. */
-const SHELL = 'churros-shell-v5';
+const SHELL = 'churros-shell-v6';
 const ASSETS = 'churros-assets-v1';   // trocou ícone/logo/manifest/leaflet? suba para v5
 const FOTOS = 'churros-fotos-v1';
 const FOTOS_MAX = 150;

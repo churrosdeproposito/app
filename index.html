@@ -879,8 +879,8 @@ body.perfil-garcom #btnFecharContaItens{display:none !important;}
     <div class="row2 cd-hide-mesa" style="margin-top:10px;"><div><label>🎟️ Cupom</label><input id="cdCupom" placeholder="PROMO10"></div><div style="align-self:end;"><button class="small-gold" type="button" onclick="aplicarCupomPublicoUI()">Aplicar cupom</button></div></div><div class="msg" id="cdCupomMsg"></div><div class="info-line" id="cdCupomResumo"></div>
 
     <div id="cdCheckoutForm" style="margin-top:14px;">
-      <label>Seu nome *</label><input type="text" id="cdNome" placeholder="Nome completo">
-      <div class="cd-hide-mesa"><label>Telefone (WhatsApp) *</label><input type="tel" id="cdTelefone" placeholder="(00) 00000-0000" maxlength="15">
+      <label>Seu nome *</label><input type="text" id="cdNome" placeholder="Nome completo" autocomplete="name">
+      <div class="cd-hide-mesa"><label>Telefone (WhatsApp) *</label><input type="tel" id="cdTelefone" placeholder="(00) 00000-0000" maxlength="15" autocomplete="tel">
       <label>Como vai retirar?</label>
       <select id="cdTipoEntrega" onchange="onMudarTipoCdEntrega()"><option value="Retirada">Retirar no balcão</option><option value="Entrega">Entrega</option></select>
       <p class="sub" id="cdTempoEstimado" style="margin-top:4px;"></p></div>
@@ -3049,6 +3049,9 @@ const APP_NOVIDADES = {
     ]}
   ],
   Cliente: [
+    { v:'1.1', em:'11/10/2026', itens:[
+      'Novo: seu nome e telefone voltam preenchidos nos próximos pedidos neste aparelho; o endereço continua vindo pela localização.',
+    ]},
     { v:'1.0', em:'09/10/2026', itens:[
       'Novo: avisos do pedido no celular e, depois da entrega, "Como foi seu pedido?". O atendente do chat agora oferece registrar o seu elogio ou sugestão como feedback.',
       'A Ajuda vem com os tópicos fechados: toque no título para abrir.',
@@ -13250,12 +13253,20 @@ function atualizarFabCarrinho(){
 }
 
 /* ---------- CARRINHO / CHECKOUT ---------- */
+function cdPreencherContato_(){
+  try{
+    const nm = document.getElementById('cdNome'), tl = document.getElementById('cdTelefone');
+    if(nm && !nm.value) nm.value = localStorage.getItem('cdClienteNome') || '';
+    if(tl && !tl.value) tl.value = localStorage.getItem('cdClienteTel') || '';
+  }catch(e){}
+}
+function cdGuardarContato_(nome, tel){ try{ if(nome) localStorage.setItem('cdClienteNome', String(nome).slice(0,80)); if(tel) localStorage.setItem('cdClienteTel', String(tel).slice(0,20)); }catch(e){} }
 function abrirCarrinhoPublico(){
   if(mesaQr){
     const t = document.getElementById('cdTipoEntrega'); if(t) t.value = 'Retirada';
     const av = document.getElementById('cdAvisoMesa'); if(av){ av.textContent = '🍽️ Pedido da Mesa '+mesaQr.numero+'. O restaurante confirma antes de preparar e você paga no caixa, no final.'; av.style.display = ''; }
     const nm = document.getElementById('cdNome'); if(nm && !nm.value){ try{ nm.value = localStorage.getItem('cdNomeMesa')||''; }catch(e){} }
-  }
+  }else{ cdPreencherContato_(); }
   cdCupomAplicado=null; if(document.getElementById('cdCupom'))document.getElementById('cdCupom').value=''; if(document.getElementById('cdCupomMsg'))document.getElementById('cdCupomMsg').textContent=''; if(document.getElementById('cdCupomResumo'))document.getElementById('cdCupomResumo').textContent='';
   renderCdCarrinho();
   onMudarTipoCdEntrega();
@@ -13374,6 +13385,7 @@ async function finalizarPedidoPublico(){
   const formaPagamentoId = document.getElementById('cdFormaPagamento').value;
   if(!nome || !telefone) return showMsg('cdCheckoutMsg','Informe nome e telefone.','warn');
   if(!cdCarrinho.length) return showMsg('cdCheckoutMsg','Seu carrinho está vazio.','warn');
+  cdGuardarContato_(nome, telefone);
   const dadosEntrega = tipoEntrega==='Entrega' ? {
     endereco: document.getElementById('cdEndereco').value.trim().replace(/[,\s]+$/,''),
     numero: (document.getElementById('cdNumero')||{value:''}).value.trim(),
