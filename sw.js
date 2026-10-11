@@ -6,7 +6,7 @@
    - BACKEND: NADA de Apps Script (script.google.com) nem de Supabase (*.supabase.co) é guardado aqui.
      Dados, pedidos, login e RPCs nunca passam pelo cache do service worker — sempre vão direto para a rede.
    - O único cache de dados é o de fotos (FOTOS) e o da casca/ícones (SHELL/ASSETS). Não adicionar outros. */
-const SHELL = 'churros-shell-v9';
+const SHELL = 'churros-shell-v10';
 const ASSETS = 'churros-assets-v2';   // trocou ícone/logo/manifest/leaflet? suba para v5
 const FOTOS = 'churros-fotos-v1';
 /* Código do app dividido em arquivos (app-*.js e estilo-*.css). Cada arquivo tem ?v=<impressão digital> na página; o cache guarda
@@ -14,7 +14,7 @@ const FOTOS = 'churros-fotos-v1';
    A lista abaixo é gerada pelo script de selagem (selar.py) a cada entrega. */
 const CODIGO = 'churros-codigo-v2';
 const LISTA = [/*LISTA-INICIO*/
-  'estilo-01-base.css?v=aa4a5d64',
+  'estilo-01-base.css?v=da306e00',
   'estilo-02-chat-publico.css?v=807e23b8',
   'app-01-base-e-api.js?v=c9c1fbc6',
   'app-02-abas.js?v=da70d86b',
@@ -37,7 +37,7 @@ const LISTA = [/*LISTA-INICIO*/
   'estilo-03-ia.css?v=2db6f3db',
   'app-19-ia.js?v=dd31b68b',
   'estilo-04-cardapio-compacto.css?v=9f400dbf',
-  'estilo-05-cardapio-layout.css?v=431dee00',
+  'estilo-05-cardapio-layout.css?v=f7506bc1',
   'estilo-06-ia-publica.css?v=174d4945',
   'estilo-08-balao-interno.css?v=48504d0a',
   'app-20-balao-interno.js?v=70630b0c',
