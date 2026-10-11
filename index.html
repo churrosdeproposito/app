@@ -2927,6 +2927,7 @@ window.APP_VERSAO = APP_VERSAO;
 const APP_NOVIDADES = {
   Admin: [
     { v:'1.0', em:'09/10/2026', itens:[
+      'Novo: o Assistente agora também registra outras coisas quando você pede (despesa, pagar conta, entrada, perda e contagem de estoque, ingrediente, cliente, ocorrência, sangria, receber ou cancelar compra, ajuste pós-venda e brinde). Sempre aparece um cartão com o que será gravado e só grava depois do seu toque em Confirmar. Cancelar despesa e ajuste pós-venda pedem a sua senha de administrador. Excluir, vendas, caixa, usuários, preços e configurações continuam só nas telas.',
       'Mudou: a "Saúde do sistema" saiu do Painel e agora fica só dentro de "Conexão e servidores" (toque na bolinha colorida do topo), junto com os servidores.',
       'Novo: o cliente que aceitou os avisos recebe no celular cada mudança de status que a equipe faz. Em Feedbacks aparece se veio pelo aviso ou pelo chat.',
       'Nada abre sozinho: a Ajuda e os avisos do Assistente vêm fechados (toque no título para abrir) e, ao entrar no Admin, aparecem só os grupos — toque no grupo e depois na tela.',
@@ -8977,7 +8978,10 @@ Admin:{ nome:'Administrador', secoes:[
     'Compra "Recebida" já soma no estoque e atualiza o custo médio do insumo; "Pedido" só guarda o pedido e você marca como recebida quando chegar. Toda compra recebida vira uma despesa (Paga ou A pagar, com vencimento).',
     'Marque "saiu do caixa" só se o dinheiro saiu da gaveta. Compra já recebida não é cancelada: corrija pelo estoque ou pela despesa. Pedido ainda não recebido pode ser cancelado com motivo.',
     'Assistente (balão ✨): diga, por exemplo, "comprei 30kg de arroz do fornecedor X por R$ 900". A IA só monta um cartão; nada é gravado até você tocar em "Confirmar e gravar". Use "Revisar na tela" para ajustar antes. Fornecedor ou item que a IA não achar bloqueia o botão: cadastre antes.',
-    'Relatórios → "Análise avançada": margem líquida por forma de pagamento, vendas por dia da semana e comparação com o mesmo período do ano passado. Também há os períodos "Últimos 90 dias" e "Últimos 12 meses".' ],
+    'Relatórios → "Análise avançada": margem líquida por forma de pagamento, vendas por dia da semana e comparação com o mesmo período do ano passado. Também há os períodos "Últimos 90 dias" e "Últimos 12 meses".',
+    'Assistente grava mais coisas (só Administrador e Desenvolvedor): despesa nova, pagar ou cancelar despesa, entrada, perda e contagem de estoque, cadastrar ou editar ingrediente, cliente, ocorrência, sangria, receber ou cancelar pedido de compra, ajuste pós-venda e brinde. Peça em frase normal (ex.: "perdi 2 kg de farinha", "paguei R$ 120 de luz").',
+    'Sempre aparece um cartão com o que será gravado. Se algo estiver errado ou faltando, o cartão avisa em laranja e o botão fica travado. Só grava depois de "Confirmar e gravar"; "Descartar" não grava nada. Cancelar despesa e ajuste pós-venda pedem a sua senha de administrador no cartão.',
+    'Nunca pelo Assistente: excluir qualquer coisa, cancelar ou editar venda, abrir ou fechar caixa, usuários, senhas, contas e acessos, preços, cardápio e configurações. Esses ficam só nas telas.' ],
     comuns:['Compras e a gravação pela IA são só do Administrador e do Desenvolvedor.'] },
 
   { t:'Cardápio Digital, promoções e eventos', itens:[
@@ -10856,6 +10860,7 @@ function iaAchar_(lista, nome, campo){
 }
 function iaUnidOk_(a, b){ const g = { kg:'m', g:'m', l:'v', ml:'v', un:'u' }; return !!g[a] && g[a]===g[b]; }
 async function iaPropPreparar_(p){
+  if(p && IA_ACOES_[p.tipo]) return iaAcaoPreparar_(p);
   if(!p || (p.tipo!=='registrar_compra' && p.tipo!=='cadastrar_fornecedor')) return null;
   try{ if(!_compras_.fornecedores.length){ const r = await apiCall('listarCompras', {}); if(r && r.ok) _compras_ = { fornecedores:r.fornecedores||[], compras:r.compras||[] }; } }catch(e){}
   const id = 'p' + (++_iaPropSeq_), pend = [];
@@ -10879,6 +10884,7 @@ async function iaPropPreparar_(p){
 }
 function iaPropHtml_(o){
   if(!o) return '';
+  if(o.generico) return iaAcaoHtml_(o);
   const p = o.bruto, L = [];
   if(o.tipo==='cadastrar_fornecedor'){
     L.push('<b>Cadastrar fornecedor</b>: ' + escH(p.nome) + (p.telefone ? ' · ' + escH(p.telefone) : '') + (p.observacao ? '<br>' + escH(p.observacao) : ''));
@@ -10898,6 +10904,10 @@ async function iaPropAgir_(btn){
   const card = btn.closest('[data-prop]'); if(!card) return;
   const o = _iaProps_[card.getAttribute('data-prop')]; if(!o || o.feito) return;
   const ac = btn.getAttribute('data-prop-ac'), msg = card.querySelector('[data-prop-msg]');
+  if(o.generico){
+    if(ac==='no'){ msg.textContent = 'Descartado. Nada foi gravado.'; card.querySelectorAll('button').forEach(b=>{ b.disabled = true; }); o.feito = true; return; }
+    return iaAcaoAgir_(card, o, msg);
+  }
   const fim = (t, ok) => { msg.textContent = t; card.querySelectorAll('button').forEach(b=>{ b.disabled = true; }); o.feito = true; };
   if(ac==='no'){ fim('Descartado. Nada foi gravado.'); return; }
   if(ac==='rev'){
@@ -10930,6 +10940,149 @@ function cpAplicarPend_(){
   document.getElementById('cpObs').value = p.observacao || '';
   showMsg('cpMsg', 'Sugestão da IA carregada. Confira e toque em registrar.' + (o.pend.length ? ' ' + o.pend.join(' ') : ''), o.pend.length ? 'warn' : 'ok');
 }
+/* ---------- OUTRAS AÇÕES DA IA (só Admin/Dev): sempre cartão + Confirmar; quem grava é o app, pelas mesmas funções das telas ---------- */
+const IA_FATOR_UN_ = { kg:{kg:1,g:1000}, g:{g:1,kg:0.001}, l:{l:1,ml:1000}, ml:{ml:1,l:0.001}, un:{un:1} };
+function iaConvQtd_(qtd, de, para){ de = String(de||'').toLowerCase(); para = String(para||'').toLowerCase(); if(!de || de===para) return qtd; const f = IA_FATOR_UN_[de] && IA_FATOR_UN_[de][para]; return f ? Math.round(qtd*f*1000)/1000 : null; }
+function iaNum_(n){ return String(Math.round(Number(n)*1000)/1000).replace('.', ','); }
+function iaDataBR_(d){ return String(d||'').split('-').reverse().join('/'); }
+function iaAchar2_(lista, nome, campo, nomeLista){
+  /* devolve {item} ou {erro}. Mais de um parecido = erro (nunca escolhe no chute). */
+  const n = iaNorm_(nome); if(!n) return { erro:'Informe o nome.' };
+  let m = lista.filter(x=>iaNorm_(x[campo])===n);
+  if(!m.length) m = lista.filter(x=>{ const k = iaNorm_(x[campo]); return k && (k.includes(n) || n.includes(k)); });
+  if(m.length===1) return { item:m[0] };
+  if(!m.length) return { erro:'Não encontrei "' + nome + '"' + (nomeLista ? ' em ' + nomeLista : '') + '.' };
+  return { erro:'Mais de um combina com "' + nome + '": ' + m.slice(0,4).map(x=>x[campo]).join(', ') + '. Diga qual.' };
+}
+const IA_ACOES_ = {
+  receber_compra: { titulo:'Receber pedido de compra', admin:true,
+    async prep(p, o){ await iaCarregarCompras_();
+      const r = iaAchar2_(_compras_.compras.filter(c=>c.status==='Pedido'), p.fornecedor, 'fornecedor', 'pedidos de compra pendentes'); if(r.erro){ o.pend.push(r.erro); return; }
+      o.compra = r.item; o.linhas.push('Pedido de ' + escH(r.item.fornecedor) + ' · ' + formatarMoeda(r.item.total) + ' · ' + escH(iaDataBR_(r.item.data)));
+      o.linhas.push('Pagamento: ' + escH(p.pagamento) + (p.vencimento ? ' (vence ' + escH(iaDataBR_(p.vencimento)) + ')' : '') + ' · entra no estoque agora');
+      if(p.pagamento==='A pagar' && !p.vencimento) o.pend.push('Falta a data de vencimento.'); },
+    exec(p, o){ return apiCall('receberCompra', { id:o.compra.id, pagamento:p.pagamento, vencimento:p.vencimento, saiuDoCaixa:false }); } },
+  cancelar_compra: { titulo:'Cancelar pedido de compra', admin:true,
+    async prep(p, o){ await iaCarregarCompras_();
+      const r = iaAchar2_(_compras_.compras.filter(c=>c.status==='Pedido'), p.fornecedor, 'fornecedor', 'pedidos de compra pendentes'); if(r.erro){ o.pend.push(r.erro); return; }
+      o.compra = r.item; o.linhas.push('Pedido de ' + escH(r.item.fornecedor) + ' · ' + formatarMoeda(r.item.total) + ' · ' + escH(iaDataBR_(r.item.data))); o.linhas.push('Motivo: ' + escH(p.motivo)); },
+    exec(p, o){ return apiCall('cancelarCompra', { id:o.compra.id, motivo:p.motivo }); } },
+  lancar_despesa: { titulo:'Lançar despesa',
+    async prep(p, o){
+      const cats = (typeof CATEGORIAS_DESPESA_PADRAO!=='undefined' ? CATEGORIAS_DESPESA_PADRAO : []);
+      const c = cats.find(x=>iaNorm_(x)===iaNorm_(p.categoria)); o.categoria = c || 'Outros';
+      o.linhas.push(escH(p.descricao) + ' · <b>' + formatarMoeda(p.valor) + '</b> · ' + escH(o.categoria) + (c ? '' : ' (categoria não reconhecida: vai como Outros)'));
+      o.linhas.push(escH(p.situacao) + (p.situacao==='A pagar' ? ' · vence ' + escH(iaDataBR_(p.vencimento)) : '') + (p.situacao==='Paga' ? (p.saiuDoCaixa ? ' · sai do caixa' : ' · fora do caixa') : ''));
+      if(p.situacao==='A pagar' && !p.vencimento) o.pend.push('Falta a data de vencimento.');
+      if(p.situacao==='Paga' && p.saiuDoCaixa && !sessaoCaixa) o.pend.push('Abra o caixa para lançar uma despesa que sai do caixa.'); },
+    exec(p, o){ return apiCall('addDespesa', { descricao:p.descricao, valor:p.valor, observacao:p.observacao, categoria:o.categoria, situacao:p.situacao, vencimento:p.vencimento, saiuDoCaixa:p.situacao==='Paga' ? p.saiuDoCaixa : false }); } },
+  pagar_despesa: { titulo:'Pagar despesa',
+    async prep(p, o){ const r = iaAchar2_((despesas||[]).filter(d=>d.status==='Confirmada' && d.situacao==='A pagar'), p.busca, 'descricao', 'contas a pagar'); if(r.erro){ o.pend.push(r.erro); return; }
+      o.desp = r.item; o.valorPago = p.valorPago || Number(r.item.valor);
+      o.linhas.push(escH(r.item.descricao) + ' · vence ' + escH(iaDataBR_(r.item.vencimento)) + ' · valor ' + formatarMoeda(r.item.valor));
+      o.linhas.push('Pagar <b>' + formatarMoeda(o.valorPago) + '</b>' + (p.saiuDoCaixa ? ' · sai do caixa' : ' · fora do caixa'));
+      if(p.saiuDoCaixa && !sessaoCaixa) o.pend.push('Abra o caixa para pagar com dinheiro do caixa.'); },
+    exec(p, o){ return apiCall('pagarDespesa', { id:o.desp.id, saiuDoCaixa:p.saiuDoCaixa, valorPago:o.valorPago }); } },
+  cancelar_despesa: { titulo:'Cancelar despesa', senha:true,
+    async prep(p, o){ const r = iaAchar2_((despesas||[]).filter(d=>d.status==='Confirmada'), p.busca, 'descricao', 'despesas'); if(r.erro){ o.pend.push(r.erro); return; }
+      o.desp = r.item; o.linhas.push(escH(r.item.descricao) + ' · ' + formatarMoeda(r.item.valor) + ' · ' + escH(r.item.situacao||'')); o.linhas.push('Motivo: ' + escH(p.motivo)); },
+    exec(p, o, senha){ return apiCall('cancelarDespesa', { id:o.desp.id, motivo:p.motivo, senhaAdminConfirmacao:senha }); } },
+  estoque_entrada: { titulo:'Entrada de estoque', async prep(p, o){ return iaPrepEstoque_(p, o, 'entrada'); },
+    exec(p, o){ return apiCall('registrarEntradaEstoque', { ingredienteId:o.ing.id, quantidade:o.qtd, motivo:p.motivo || 'Entrada pelo Assistente' }); } },
+  estoque_perda: { titulo:'Perda de estoque', async prep(p, o){ return iaPrepEstoque_(p, o, 'perda'); },
+    exec(p, o){ return apiCall('registrarPerdaEstoque', { ingredienteId:o.ing.id, quantidade:o.qtd, motivo:p.motivo || 'Perda registrada pelo Assistente' }); } },
+  estoque_inventario: { titulo:'Inventário de estoque (contagem)', async prep(p, o){ return iaPrepEstoque_(p, o, 'inventario'); },
+    exec(p, o){ return apiCall('registrarInventarioEstoque', { ingredienteId:o.ing.id, novaQuantidade:o.qtd, motivo:p.motivo || 'Contagem pelo Assistente' }); } },
+  cadastrar_ingrediente: { titulo:'Cadastrar ingrediente',
+    async prep(p, o){ const ja = iaAchar_((estoque||[]), p.nome, 'nome'); if(ja) o.pend.push('Já existe um ingrediente parecido: ' + ja.nome + '.');
+      o.linhas.push('<b>' + escH(p.nome) + '</b> · unidade ' + escH(p.unidade) + ' · em estoque ' + iaNum_(p.quantidade) + ' · mínimo ' + iaNum_(p.minimo) + ' · custo ' + formatarMoeda(p.custo) + ' por ' + escH(p.unidade)); },
+    exec(p){ return apiCall('addIngrediente', { nome:p.nome, quantidade:p.quantidade, minimo:p.minimo, unidade:p.unidade, custo:p.custo }); } },
+  editar_ingrediente: { titulo:'Editar ingrediente',
+    async prep(p, o){ const r = iaAchar2_((estoque||[]), p.ingrediente, 'nome', 'estoque'); if(r.erro){ o.pend.push(r.erro); return; }
+      const e = r.item; o.ing = e; o.novo = { nome:p.nome!=null ? p.nome : e.nome, minimo:p.minimo!=null ? p.minimo : Number(e.minimo)||0, custo:p.custo!=null ? p.custo : Number(e.custo)||0, unidade:p.unidade || e.unidade, ativo:typeof p.ativo==='boolean' ? p.ativo : e.ativo!==false };
+      if(p.unidade && p.unidade!==e.unidade) o.pend.push('Trocar a unidade de ' + e.unidade + ' para ' + p.unidade + ' muda o significado da quantidade em estoque. Faça pela tela de Estoque.');
+      const mud = []; if(p.nome!=null) mud.push('nome: ' + escH(e.nome) + ' → ' + escH(p.nome)); if(p.minimo!=null) mud.push('mínimo: ' + iaNum_(e.minimo) + ' → ' + iaNum_(p.minimo)); if(p.custo!=null) mud.push('custo: ' + formatarMoeda(e.custo) + ' → ' + formatarMoeda(p.custo)); if(typeof p.ativo==='boolean') mud.push(p.ativo ? 'reativar' : 'desativar');
+      o.linhas.push('<b>' + escH(e.nome) + '</b>: ' + (mud.join(' · ') || 'sem mudanças')); if(!mud.length) o.pend.push('Nada para mudar.'); },
+    exec(p, o){ const e = o.ing, n = o.novo; return apiCall('editarIngrediente', { id:e.id, nome:n.nome, quantidade:Number(e.quantidade)||0, minimo:n.minimo, unidade:n.unidade, custo:n.custo, ativo:n.ativo }); } },
+  salvar_cliente: { titulo:'Cadastrar ou atualizar cliente',
+    async prep(p, o){ const dig = normTel(p.telefone); const ja = (clientes||[]).find(c=>normTel(c.telefone)===dig); o.cliExistente = ja || null;
+      o.linhas.push('<b>' + escH(p.nome) + '</b> · ' + escH(p.telefone) + (p.dataNascimento ? ' · nasc. ' + escH(iaDataBR_(p.dataNascimento)) : '') + (p.endereco ? '<br>' + escH(p.endereco) : '') + (p.observacao ? '<br>' + escH(p.observacao) : ''));
+      o.linhas.push(ja ? 'Já existe o cliente <b>' + escH(ja.nome || '(sem nome)') + '</b> com esse telefone: os dados serão atualizados.' : 'Cliente novo.'); },
+    exec(p, o){ const ja = o.cliExistente; return apiCallFila('salvarCliente', { id: ja ? ja.id : '', nome:p.nome, telefone:p.telefone, dataNascimento:p.dataNascimento || (ja && ja.dataNascimento) || '', endereco:p.endereco || (ja && ja.endereco) || '', comoConheceu:(ja && ja.comoConheceu) || '', observacao:p.observacao || (ja && ja.observacao) || '' }); } },
+  registrar_ocorrencia: { titulo:'Registrar ocorrência',
+    async prep(p, o){ let vid = null;
+      if(p.pedido){ const v = (vendas||[]).find(x=>String(rotuloPedido(x))===String(p.pedido).replace(/^#/,'')); if(v) vid = v.id; else o.pend.push('Pedido ' + p.pedido + ' não encontrado.'); }
+      o.vendaId = vid; o.linhas.push('Tipo: ' + escH(p.tipoOcorrencia) + (p.pedido ? ' · pedido ' + escH(p.pedido) : '')); o.linhas.push(escH(p.descricao)); },
+    exec(p, o){ return apiCallFila('registrarOcorrencia', { tipo:p.tipoOcorrencia, vendaId:o.vendaId, descricao:p.descricao }, 'Ocorrência'); } },
+  registrar_sangria: { titulo:'Sangria do caixa',
+    async prep(p, o){ o.linhas.push('Retirar <b>' + formatarMoeda(p.valor) + '</b> do caixa · ' + escH(p.motivo)); if(!sessaoCaixa) o.pend.push('O caixa está fechado. Abra o caixa primeiro.'); },
+    exec(p){ return apiCall('addSangria', { valor:p.valor, motivo:p.motivo }); } },
+  ajuste_pos_venda: { titulo:'Ajuste pós-venda', senha:true,
+    async prep(p, o){ const v = (vendas||[]).find(x=>String(rotuloPedido(x))===String(p.pedido).replace(/^#/,'')); if(!v){ o.pend.push('Pedido ' + p.pedido + ' não encontrado.'); return; }
+      o.venda = v; o.linhas.push('Pedido ' + escH(rotuloPedido(v)) + ' · ' + escH(v.clienteNome||'') + ' · total ' + formatarMoeda(v.valorTotal));
+      o.linhas.push(escH(p.tipoAjuste) + ' de <b>' + formatarMoeda(p.valor) + '</b> · motivo: ' + escH(p.motivo) + (p.detalhe ? ' — ' + escH(p.detalhe) : '') + (AJ_TIPOS_COM_SAIDA_.indexOf(p.tipoAjuste)!==-1 ? ' · sai ' + escH(p.saida.toLowerCase()) : ''));
+      if(p.valor > Number(v.valorTotal) + 0.001) o.pend.push('O ajuste não pode ser maior que o valor da venda (' + formatarMoeda(v.valorTotal) + ').');
+      if(p.motivo==='Outro' && !p.detalhe) o.pend.push('Descreva o motivo (detalhe).');
+      if(AJ_TIPOS_COM_SAIDA_.indexOf(p.tipoAjuste)!==-1 && p.saida==='Do caixa' && !sessaoCaixa) o.pend.push('Abra o caixa para uma saída do caixa.'); },
+    exec(p, o, senha){ return apiCall('registrarAjustePosVenda', { vendaId:o.venda.id, tipo:p.tipoAjuste, valor:p.valor, motivo:p.motivo, detalhe:p.detalhe, saida:p.saida, senhaAdminConfirmacao:senha }); } },
+  registrar_brinde: { titulo:'Brinde (prêmio) do cliente',
+    async prep(p, o){ const r = iaAchar2_((produtos||[]).filter(x=>x.ativo!==false), p.produto, 'nome', 'produtos'); if(r.erro) o.pend.push(r.erro); else o.prod = r.item;
+      const dig = normTel(p.telefone); const cli = (clientes||[]).find(c=>normTel(c.telefone)===dig);
+      o.linhas.push('Brinde ' + escH(p.tipoBrinde) + ': <b>' + escH(o.prod ? o.prod.nome : p.produto) + '</b> para ' + escH(cli ? (cli.nome||p.telefone) : p.telefone) + ' · zera o cartão (ou marca a indicação) e baixa o estoque');
+      if(!cli) o.pend.push('Cliente com esse telefone não encontrado.');
+      if(!sessaoCaixa) o.pend.push('Abra o caixa antes de lançar o brinde.');
+      if(p.tipoBrinde==='Indicação'){ const ind = (indicacoes||[]).find(i=>normTel(i.telIndicador)===dig && !i.resgatado); if(!ind) o.pend.push('Indicação pendente não encontrada.'); else o.telIndicado = ind.telIndicado; } },
+    exec(p, o){ return apiCall('registrarBrinde', { tipo:p.tipoBrinde, produtoId:o.prod.id, telefone:p.telefone, telIndicado:o.telIndicado || null }); } }
+};
+async function iaCarregarCompras_(){ try{ if(!_compras_.compras.length){ const r = await apiCall('listarCompras', {}); if(r && r.ok) _compras_ = { fornecedores:r.fornecedores||[], compras:r.compras||[] }; } }catch(e){} }
+async function iaPrepEstoque_(p, o, modo){
+  const r = iaAchar2_((estoque||[]).filter(e=>e.ativo!==false), p.ingrediente, 'nome', 'estoque'); if(r.erro){ o.pend.push(r.erro); return; }
+  const e = r.item; o.ing = e; const bruto = modo==='inventario' ? p.novaQuantidade : p.quantidade;
+  const q = iaConvQtd_(bruto, p.unidade || e.unidade, e.unidade);
+  if(q===null){ o.pend.push('A unidade ' + p.unidade + ' não combina com ' + e.unidade + ' (unidade do estoque).'); return; }
+  o.qtd = q; const atual = Number(e.quantidade) || 0;
+  if(modo==='entrada') o.linhas.push('Entrada de <b>' + iaNum_(q) + ' ' + escH(e.unidade) + '</b> em ' + escH(e.nome) + ' (hoje ' + iaNum_(atual) + ' → ' + iaNum_(atual+q) + ')');
+  else if(modo==='perda'){ o.linhas.push('Perda de <b>' + iaNum_(q) + ' ' + escH(e.unidade) + '</b> de ' + escH(e.nome) + ' (hoje ' + iaNum_(atual) + ' → ' + iaNum_(Math.max(0, atual-q)) + ')'); if(q>atual+0.0001) o.pend.push('A perda é maior que o estoque atual (' + iaNum_(atual) + ' ' + e.unidade + ').'); }
+  else o.linhas.push('Contagem de <b>' + escH(e.nome) + '</b>: de ' + iaNum_(atual) + ' para <b>' + iaNum_(q) + ' ' + escH(e.unidade) + '</b>');
+  if(p.motivo) o.linhas.push('Motivo: ' + escH(p.motivo));
+}
+async function iaAcaoPreparar_(p){
+  const def = IA_ACOES_[p.tipo], id = 'p' + (++_iaPropSeq_), o = { id, tipo:p.tipo, bruto:p, pend:[], linhas:[], feito:false, generico:true, def };
+  try{ await def.prep(p, o); }catch(e){ o.pend.push('Não consegui conferir os dados agora. Use a tela correspondente.'); }
+  _iaProps_[id] = o; return o;
+}
+function iaAcaoHtml_(o){
+  const def = o.def; let h = '<b>' + escH(def.titulo) + '</b><br>' + o.linhas.join('<br>');
+  if(o.pend.length) h += '<br><span style="color:#b45309;">' + o.pend.map(escH).join('<br>') + '</span>';
+  if(def.senha) h += '<label style="display:block;margin-top:8px;font-size:13px;">Sua senha de Administrador, para confirmar</label><input type="password" data-prop-senha autocomplete="current-password" style="width:100%;">';
+  return '<div class="notif-card" data-prop="' + o.id + '" style="margin-top:8px;">' + h +
+    '<div class="btnrow" style="margin-top:8px;"><button type="button" class="small-gold" data-prop-ac="ok"' + (o.pend.length ? ' disabled' : '') + '>Confirmar e gravar</button> <button type="button" class="ghost" data-prop-ac="no">Descartar</button></div><div class="obs-line" data-prop-msg></div></div>';
+}
+async function iaAcaoAgir_(card, o, msg){
+  const def = o.def; let senha = '';
+  if(def.senha){ const inp = card.querySelector('[data-prop-senha]'); senha = inp ? inp.value : ''; if(!senha){ msg.textContent = 'Digite a sua senha de Administrador para confirmar.'; return; } }
+  card.querySelectorAll('button').forEach(b=>{ b.disabled = true; }); msg.textContent = 'Gravando…';
+  try{
+    const r = await def.exec(o.bruto, o, senha);
+    if(r && r.ok){
+      iaAplicarResposta_(r); o.feito = true;
+      const inp = card.querySelector('[data-prop-senha]'); if(inp) inp.value = '';
+      msg.textContent = '✅ ' + (r.message || 'Gravado.');
+    }else{ msg.textContent = '⚠️ ' + ((r && r.message) || 'Não foi possível gravar.'); card.querySelectorAll('button').forEach(b=>{ b.disabled = false; }); }
+  }catch(e){ msg.textContent = '⚠️ Não foi possível gravar agora. Confira na tela antes de tentar de novo.'; card.querySelectorAll('button').forEach(b=>{ b.disabled = false; }); }
+}
+/* atualiza as listas em memória com o que o servidor devolveu (igual às telas) e redesenha o que existir */
+function iaAplicarResposta_(r){
+  try{
+    if(r.estoque) estoque = r.estoque; if(r.movimentacoesEstoque) movimentacoesEstoque = r.movimentacoesEstoque; if(r.despesas) despesas = r.despesas;
+    if(r.clientes) clientes = r.clientes; if(r.ocorrencias) ocorrencias = r.ocorrencias; if(r.ajustesPosVenda) ajustesPosVenda = r.ajustesPosVenda;
+    if(r.fidelidade) fidelidadeClientes = r.fidelidade; if(r.indicacoes) indicacoes = r.indicacoes; if(r.sangrias) sangrias = r.sangrias;
+    _compras_ = { fornecedores:[], compras:[] };
+    if(typeof salvarCache==='function') salvarCache();
+    ['renderEstoque','renderMovimentacoesEstoque','renderDespesas','renderContasPagar','renderClientes','renderStatusCaixa','atualizarResumoHoje'].forEach(f=>{ try{ if(typeof window[f]==='function') window[f](); }catch(e){} });
+  }catch(e){}
+}
+
 /* ---------- BUSCA GLOBAL (clientes, pedidos, produtos) ---------- */
 function bgNivel_(){ return currentUser ? currentUser.nivel : ''; }
 function bgPodeBuscar_(){ return ['Admin','Operador','Garçom','Cozinha'].indexOf(bgNivel_())!==-1; }
