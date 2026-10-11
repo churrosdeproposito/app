@@ -78,3 +78,10 @@ th[align="right"]{ text-align:right; }
   button.ghost:hover, .toggle-mode:not(.active):hover, .admin-subnav button:not(.active):hover, .ped-subnav button:not(.active):hover,
   .seg-abas button:not(.active):hover, nav.tabs button:not(.active):hover{ border-color:var(--accent-dim); }
 }
+
+/* TODOS: Início — alerta numa faixa fina no topo */
+.resumo-faixa{ grid-column:1 / -1; display:flex; align-items:center; gap:8px; width:100%; text-align:left; font:inherit; font-size:13px; color:var(--text);
+  background:rgba(214,69,69,.12); border:1px solid var(--red-dim); border-left:3px solid var(--red-hi); border-radius:10px; padding:7px 10px; cursor:pointer; }
+.resumo-faixa span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.resumo-faixa small{ color:var(--accent); font-weight:700; }
+.resumo-faixa i{ font-style:normal; color:var(--muted); }

@@ -6,7 +6,7 @@
    - BACKEND: NADA de Apps Script (script.google.com) nem de Supabase (*.supabase.co) é guardado aqui.
      Dados, pedidos, login e RPCs nunca passam pelo cache do service worker — sempre vão direto para a rede.
    - O único cache de dados é o de fotos (FOTOS) e o da casca/ícones (SHELL/ASSETS). Não adicionar outros. */
-const SHELL = 'churros-shell-v8';
+const SHELL = 'churros-shell-v9';
 const ASSETS = 'churros-assets-v2';   // trocou ícone/logo/manifest/leaflet? suba para v5
 const FOTOS = 'churros-fotos-v1';
 /* Código do app dividido em arquivos (app-*.js e estilo-*.css). Cada arquivo tem ?v=<impressão digital> na página; o cache guarda
@@ -16,21 +16,21 @@ const CODIGO = 'churros-codigo-v2';
 const LISTA = [/*LISTA-INICIO*/
   'estilo-01-base.css?v=aa4a5d64',
   'estilo-02-chat-publico.css?v=807e23b8',
-  'app-01-base-e-api.js?v=79d345d6',
+  'app-01-base-e-api.js?v=c9c1fbc6',
   'app-02-abas.js?v=da70d86b',
   'app-03-cadastros.js?v=4870b587',
   'app-04-pedidos-entrega.js?v=12b43cfa',
-  'app-05-avisos-push.js?v=14287c96',
+  'app-05-avisos-push.js?v=098f5028',
   'app-06-caixa.js?v=4956a3f3',
   'app-07-impressao.js?v=ea0f0b18',
   'app-08-vendas-despesas.js?v=07159b49',
-  'app-09-ajuda.js?v=a40039ef',
+  'app-09-ajuda.js?v=00116bff',
   'app-10-backup-financeiro.js?v=b0425e38',
   'app-11-admin-integracoes.js?v=f2c3cdd9',
   'app-12-gestao-ia.js?v=4ca4ae21',
   'app-13-conexao-sync.js?v=6b8cf139',
   'app-14-relatorios.js?v=38e28981',
-  'app-15-cardapio-cliente.js?v=1a0570b3',
+  'app-15-cardapio-cliente.js?v=3761906f',
   'app-16-sessao-final.js?v=514da005',
   'app-17-sessao-supabase.js?v=add7fc79',
   'app-18-queda-supabase.js?v=79639042',
@@ -51,7 +51,7 @@ const LISTA = [/*LISTA-INICIO*/
   'estilo-12-cadastro-facil.css?v=9e06f9bd',
   'app-25-cadastro-facil.js?v=a975409b',
   'estilo-13-visual.css?v=8850f8ae',
-  'estilo-14-computador.css?v=0e0eb889',
+  'estilo-14-computador.css?v=cf77db07',
   'app-26-visual.js?v=0c67507c',
 /*LISTA-FIM*/];
 const FOTOS_MAX = 150;

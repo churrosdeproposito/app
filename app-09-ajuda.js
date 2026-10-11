@@ -119,6 +119,12 @@ Admin:{ nome:'Administrador', secoes:[
     'Se alguém espalhar o QR, use "🔄 Gerar novo código" e imprima o QR novo daquela mesa.' ],
     comuns:['O endereço do site está fixo nos QR: https://churrosdeproposito.github.io/app/ — se mudar, é preciso imprimir de novo.'] },
 
+  { t:'Tela Início e visitas ao cardápio', itens:[
+    'Ordem do resumo: alerta numa faixa fina no topo (só aparece quando há algo; toque para ver), pedidos em andamento, caixa e vendas de hoje, visitas ao cardápio e mesas (com o valor a receber das mesas).',
+    '"Cardápio hoje" conta os clientes que abriram o cardápio eletrônico hoje: cada celular ou computador conta 1 vez por dia, mesmo abrindo várias vezes. Zera à meia-noite.',
+    'Aparelhos da equipe não contam: depois que alguém entra no sistema interno naquele aparelho, ele nunca mais conta, mesmo depois de sair.',
+    'É uma estimativa: a mesma pessoa em dois aparelhos conta duas vezes; aba anônima ou navegador limpo contam de novo.' ],
+    comuns:['Administrador e Operador veem as visitas.'] },
   { t:'Menu de baixo (celular)', itens:[
     'No celular, o menu fica fixo na parte de baixo da tela: Início, Caixa, Pedidos e as outras telas do seu perfil. A aba aberta fica em dourado.',
     'Quando há mais telas do que cabem, aparece "Mais" com as demais. Uma bolinha vermelha avisa que há algo novo naquela aba.',
@@ -347,6 +353,12 @@ Admin:{ nome:'Administrador', secoes:[
  ]},
 
 Operador:{ nome:'Caixa', secoes:[
+  { t:'Tela Início e visitas ao cardápio', itens:[
+    'Ordem do resumo: alerta numa faixa fina no topo (só aparece quando há algo; toque para ver), pedidos em andamento, caixa e vendas de hoje, visitas ao cardápio e mesas (com o valor a receber das mesas).',
+    '"Cardápio hoje" conta os clientes que abriram o cardápio eletrônico hoje: cada celular ou computador conta 1 vez por dia, mesmo abrindo várias vezes. Zera à meia-noite.',
+    'Aparelhos da equipe não contam: depois que alguém entra no sistema interno naquele aparelho, ele nunca mais conta, mesmo depois de sair.',
+    'É uma estimativa: a mesma pessoa em dois aparelhos conta duas vezes; aba anônima ou navegador limpo contam de novo.' ],
+    comuns:['Administrador e Operador veem as visitas.'] },
   { t:'Menu de baixo (celular)', itens:[
     'No celular, o menu fica fixo na parte de baixo da tela: Início, Caixa, Pedidos e as outras telas do seu perfil. A aba aberta fica em dourado.',
     'Quando há mais telas do que cabem, aparece "Mais" com as demais. Uma bolinha vermelha avisa que há algo novo naquela aba.',
