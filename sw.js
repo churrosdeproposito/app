@@ -6,13 +6,13 @@
    - BACKEND: NADA de Apps Script (script.google.com) nem de Supabase (*.supabase.co) é guardado aqui.
      Dados, pedidos, login e RPCs nunca passam pelo cache do service worker — sempre vão direto para a rede.
    - O único cache de dados é o de fotos (FOTOS) e o da casca/ícones (SHELL/ASSETS). Não adicionar outros. */
-const SHELL = 'churros-shell-v7';
+const SHELL = 'churros-shell-v8';
 const ASSETS = 'churros-assets-v2';   // trocou ícone/logo/manifest/leaflet? suba para v5
 const FOTOS = 'churros-fotos-v1';
 /* Código do app dividido em arquivos (app-*.js e estilo-*.css). Cada arquivo tem ?v=<impressão digital> na página; o cache guarda
    pela endereço COMPLETO, então uma página antiga sempre acha os arquivos antigos dela e a nova acha os novos (nunca mistura versões).
    A lista abaixo é gerada pelo script de selagem (selar.py) a cada entrega. */
-const CODIGO = 'churros-codigo-v1';
+const CODIGO = 'churros-codigo-v2';
 const LISTA = [/*LISTA-INICIO*/
   'estilo-01-base.css?v=aa4a5d64',
   'estilo-02-chat-publico.css?v=807e23b8',
@@ -67,7 +67,7 @@ self.addEventListener('install', e => e.waitUntil((async () => {
 
 self.addEventListener('activate', e => e.waitUntil((async () => {
   for (const k of await caches.keys()) {
-    if ((k.indexOf('churros-shell') === 0 && k !== SHELL) || (k.indexOf('churros-assets') === 0 && k !== ASSETS)) await caches.delete(k);
+    if ((k.indexOf('churros-shell') === 0 && k !== SHELL) || (k.indexOf('churros-assets') === 0 && k !== ASSETS) || (k.indexOf('churros-codigo') === 0 && k !== CODIGO)) await caches.delete(k);
   }
   try {   /* limpa do cache de código o que não está na lista atual */
     const cc = await caches.open(CODIGO);
@@ -118,7 +118,7 @@ async function codigoCache_(r) {
   const hit = await c.match(r);
   if (hit) return hit;
   const res = await fetch(r);
-  if (res && res.ok) c.put(r, res.clone());
+  if (res && res.ok) { try { const t = await res.clone().blob(); if (t.size > 0) c.put(r, res.clone()); } catch (err) {} }
   return res;
 }
 
