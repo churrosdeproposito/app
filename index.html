@@ -1846,9 +1846,6 @@ body:has(.cd-fab-carrinho.show) .balao-ia{bottom:84px;}
       </section>
   <section class="tab" id="tab-visaogeral">
     <div class="admin-subnav" data-admin-nav="1"></div>
-    <button class="card" id="saudeCard" type="button" onclick="abrirModalConexao_()" style="display:none;width:100%;text-align:left;cursor:pointer;padding:12px 14px;min-height:48px;" aria-label="Saúde do sistema: abrir Conexão e servidores">
-      <span style="display:flex;align-items:center;gap:10px;"><span id="saudeDot" style="width:14px;height:14px;border-radius:50%;background:#888;display:inline-block;flex:0 0 auto;"></span><span style="flex:1 1 auto;"><b>Saúde do sistema</b><span class="obs-line" id="saudeResumo" style="display:block;">Verificando…</span></span><span style="flex:0 0 auto;opacity:.7;">›</span></span>
-    </button>
     <div class="card">
       <h2>Visão Geral</h2>
       <label for="vgPeriodo">Período</label>
@@ -2913,8 +2910,8 @@ body:has(.cd-fab-carrinho.show) .balao-ia{bottom:84px;}
 /* =========================================================
    COLE AQUI A URL DO SEU APPS SCRIPT (termina em /exec)
    ========================================================= */
-const API_URL = "COLE_AQUI_A_URL_DA_PLANILHA_PRINCIPAL"; // URL da implantação (Web App) do planilha_FINAL.gs
-const CONTINGENCIA_API_URL = "COLE_AQUI_A_URL_DA_PLANILHA_DE_CONTINGENCIA"; // URL da implantação (Web App) do contingencia_FINAL.gs
+const API_URL = "https://script.google.com/macros/s/AKfycbzffclUmW5OSFb6VNlWAcgCe-7kcYZewYlVfMNpSaWI4mvaQv8F3pHfOJwH77SLgyYHJg/exec"; // URL da implantação (Web App) do planilha_FINAL.gs
+const CONTINGENCIA_API_URL = "https://script.google.com/macros/s/AKfycbx8kLJ2U-UMDinpcDCJt_iaORcA9IH3dSw3JQf418zlcQ8ti1H85w2fYHnNgA7ZxZtg/exec"; // URL da implantação (Web App) do contingencia_FINAL.gs
 
 /* ===================== VERSÃO DO APP ===================== */
 const APP_VERSAO = '1.0';
@@ -2930,7 +2927,7 @@ window.APP_VERSAO = APP_VERSAO;
 const APP_NOVIDADES = {
   Admin: [
     { v:'1.0', em:'09/10/2026', itens:[
-      'Mudou: a "Saúde do sistema" saiu do Painel e agora fica dentro de "Conexão e servidores" (toque na bolinha colorida do topo), junto com os servidores. No Painel ficou só uma linha com a bolinha e o resumo; toque nela para abrir.',
+      'Mudou: a "Saúde do sistema" saiu do Painel e agora fica só dentro de "Conexão e servidores" (toque na bolinha colorida do topo), junto com os servidores.',
       'Novo: o cliente que aceitou os avisos recebe no celular cada mudança de status que a equipe faz. Em Feedbacks aparece se veio pelo aviso ou pelo chat.',
       'Nada abre sozinho: a Ajuda e os avisos do Assistente vêm fechados (toque no título para abrir) e, ao entrar no Admin, aparecem só os grupos — toque no grupo e depois na tela.',
       'Novo: Administrador → Sistema → Contas e acessos, com e-mails, links e senhas das contas do sistema. A senha fica no cofre e só aparece com a sua senha de administrador.',
@@ -3015,7 +3012,7 @@ const APP_NOVIDADES = {
     ]}
   ]
 };
-const CONTINGENCIA_CHAVE_PUBLICA = "COLE_AQUI_A_CHAVE_PUBLICA_DA_CONTINGENCIA"; // CHAVE_PUBLICA gerada por gerarChaves() no script da contingência // so permite enviar pedido validado e ler o catalogo publico (sem custos/clientes)
+const CONTINGENCIA_CHAVE_PUBLICA = "rstpub-b1a9c7dbf6a640188cdbf88b20902b6b69e0f7f3"; // CHAVE_PUBLICA gerada por gerarChaves() no script da contingência // so permite enviar pedido validado e ler o catalogo publico (sem custos/clientes)
 const CONTINGENCIA_CHAVE_KEY = 'rstContChaveInterna'; // chave interna (clientes): guardada so depois do login, apagada ao sair
 let modoContingenciaAtivo = false;
 
@@ -3126,7 +3123,7 @@ function normalizarNumerosDados_(d){
   if(d.sessaoCaixa && typeof d.sessaoCaixa === 'object' && 'fundoCaixa' in d.sessaoCaixa && typeof d.sessaoCaixa.fundoCaixa !== 'number') d.sessaoCaixa.fundoCaixa = numPlanilha_(d.sessaoCaixa.fundoCaixa);
   return d;
 }
-function apiConfigurada(){ return (API_URL && API_URL.indexOf('http') === 0) || (USAR_SUPABASE_ && SUPABASE_URL_.indexOf('http') === 0); } // TEMPORÁRIO (Churros): libera com só o Supabase até a planilha principal ser publicada. Voltar ao original depois: return API_URL && API_URL.indexOf('http') === 0;
+function apiConfigurada(){ return API_URL && API_URL.indexOf('http') === 0; }
 function dataLocalISO(date){ const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
 function parseDataBR(str){
   if(!str) return null;
@@ -8943,7 +8940,7 @@ Admin:{ nome:'Administrador', secoes:[
     'Funciona: venda do Caixa (retirada ou entrega, sem desconto e sem cupom) e pedido do cardápio, pela contingência; consulta dos pedidos em Pedidos.',
     'Na fila (seguem sozinhos na volta): cadastro de cliente, fidelidade, feedback e ocorrência.',
     'Espera a volta (aparece "indisponível até o Supabase voltar" e nada é gravado): mudar status, estoque, compras, relatórios, avisos e Assistente. Anote à mão o que precisar.',
-    'A "Saúde do sistema" fica dentro de "Conexão e servidores" (toque na bolinha colorida do topo, ou na linha "Saúde do sistema" em Visão geral): bolinha verde, amarela ou vermelha e cada item: cópia para a planilha, backup (diário às 04:00), cópia no Drive, conferência diária de vendas, tarefas automáticas e Assistente.',
+    'A "Saúde do sistema" fica dentro de "Conexão e servidores" (toque na bolinha colorida do topo): bolinha verde, amarela ou vermelha e cada item: cópia para a planilha, backup (diário às 04:00), cópia no Drive, conferência diária de vendas, tarefas automáticas e Assistente.',
     'Desenvolvedor: o botão "🧪 Simular queda (treino)" em "Conexão e servidores" finge a queda só neste aparelho, para treinar a equipe. "Encerrar simulação" volta ao normal.' ],
     comuns:['O Guia de operação tem o passo a passo de queda, volta e restauração.'] },
 
