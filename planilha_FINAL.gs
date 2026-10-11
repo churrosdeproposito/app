@@ -36,7 +36,7 @@ const NIVEIS_VALIDOS = ['Admin', 'Operador', 'Garçom', 'Cozinha', 'Entregador',
    API separada, numa conta Google diferente, que serve de plano B: espelho de
    leitura (cardápio/produtos/clientes) + fila de vendas feitas enquanto esta
    planilha estiver fora do ar. */
-const CONTINGENCIA_API_URL = 'COLE_AQUI_A_URL_DA_PLANILHA_DE_CONTINGENCIA'; // URL /exec da implantação do contingencia_FINAL.gs
+const CONTINGENCIA_API_URL = 'https://script.google.com/macros/s/AKfycbx8kLJ2U-UMDinpcDCJt_iaORcA9IH3dSw3JQf418zlcQ8ti1H85w2fYHnNgA7ZxZtg/exec'; // URL /exec da implantação do contingencia_FINAL.gs
 /* SEGURANÇA: as chaves da contingência NÃO ficam no código. Cadastre em Configurações do projeto ->
    Propriedades do script: CONTINGENCIA_CHAVE_SERVIDOR (só esta planilha usa) e CONTINGENCIA_CHAVE_INTERNA
    (entregue só a Admin/Operador logados). Os valores saem da função gerarChaves() do script da contingência. */
