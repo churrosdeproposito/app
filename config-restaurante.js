@@ -14,7 +14,9 @@ window.RESTAURANTE = {
     assistente: 'Atendente do Churros',
     tema: 'classico',
     cores: { destaque: '#d99a3e', botao: '#d64545', fundo: '#1a0f0a' },
-    logos: { cardapio: 'https://churrosdeproposito.github.io/app/logo.webp', impressao: 'https://churrosdeproposito.github.io/app/logo-impressao-cor.png', icone: 'https://churrosdeproposito.github.io/app/icon-512.png' }
+    logos: { cardapio: 'https://churrosdeproposito.github.io/app/logo.webp', impressao: 'https://churrosdeproposito.github.io/app/logo-impressao-cor.png', icone: 'https://churrosdeproposito.github.io/app/icon-512.png' },
+    // Tema dos mini jogos do cliente (generico, burger ou churros)
+    jogos: { tema: 'churros' }
   },
   modulos: { ifood: false, nfce: false, mercadopago: false, infinitepay: false, mesas: true, ponto: true, eventos: true, planilhas: true, ia: true }
 };
